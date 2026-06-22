@@ -64,3 +64,112 @@ For `s = "tree"`:
 | `'r'` | 1 | `buckets[1]` |
 
 Iterating from `i = 4` down to `i = 1`, only `buckets[2]` and `buckets[1]` are non-empty, so the output is `"eert"` or `"eetr"` — both valid.
+
+---
+
+# LeetCode 1781 — Beauty Sum: Study Notes
+
+Fix a left pointer `i`, slide a right pointer `j` from `i` to end — this enumerates all O(n²) substrings. For each substring, scan the 26-length frequency array to find max and min.
+
+This gives **O(n² × 26) = O(n²)** time, which is optimal here.
+
+---
+
+## Your Final Code (Annotated)
+
+```java
+class Solution {
+    public int beautySum(String s) {
+        int sum = 0;
+        for (int i = 0; i < s.length(); i++) {
+            int[] freq = new int[26];                  // fresh freq per left boundary
+            for (int j = i; j < s.length(); j++) {
+                freq[s.charAt(j) - 'a']++;             // extend window by one char
+
+                int max = Integer.MIN_VALUE;           // ✅ outside for-each
+                int min = Integer.MAX_VALUE;
+                for (int f : freq) {
+                    if (f > 0) {                       // ✅ guard: only present chars
+                        max = Math.max(max, f);
+                        min = Math.min(min, f);        // ✅ correct variable
+                    }
+                }
+                sum += max - min;
+            }
+        }
+        return sum;
+    }
+}
+```
+
+---
+
+## Mistakes Made & Their Corrections
+
+### Mistake 1 — `max`/`min` declared inside the for-each loop
+**What you wrote:**
+
+```java
+for (int f : freq) {
+    int max = Integer.MIN_VALUE;  // resets on every character
+    int min = Integer.MAX_VALUE;
+    ...
+}
+```
+**The problem:** Every iteration of `for (int f : freq)` threw away the previous `max` and `min` and started fresh. You never actually compared across all 26 frequencies — you only ever saw one `f` at a time.
+
+**The fix:** Declare them *outside* the for-each, so they accumulate across all 26 entries:
+
+```java
+int max = Integer.MIN_VALUE;
+int min = Integer.MAX_VALUE;
+for (int f : freq) {
+    ...
+}
+```
+
+**Rule to remember:** Accumulators must be declared *before* the loop they're accumulating over.
+
+---
+
+### Mistake 2 — Typo: `max = Math.min(...)` instead of `min = Math.min(...)`
+**What you wrote:**
+
+```java
+max = Math.max(max, f);
+max = Math.min(min, f);  // ❌ overwrites max, min never updated
+```
+**The problem:** `min` was never assigned anything. It stayed at `Integer.MAX_VALUE` forever, and `max` got overwritten with a minimum operation — both variables were wrong.
+
+**The fix:**
+
+```java
+max = Math.max(max, f);  // ✅
+min = Math.min(min, f);  // ✅
+```
+
+**Rule to remember:** When writing symmetric operations like this back to back, double-check that the left-hand side variable matches the operation.
+
+---
+
+### Mistake 3 — No `f > 0` guard
+**What you wrote:**
+
+```java
+for (int f : freq) {
+    max = Math.max(max, f);
+    min = Math.min(min, f);
+}
+```
+**The problem:** Characters absent from the current substring have `freq = 0`. Without a guard, `min` gets pulled down to `0` for every substring longer than 1 unique character, making every beauty value wrong.
+
+**The fix:**
+
+```java
+for (int f : freq) {
+    if (f > 0) {  // only consider characters actually present
+        max = Math.max(max, f);
+        min = Math.min(min, f);
+    }
+}
+```
