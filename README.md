@@ -67,7 +67,7 @@ Iterating from `i = 4` down to `i = 1`, only `buckets[2]` and `buckets[1]` are n
 
 ---
 
-# LeetCode 1781 — Beauty Sum: Study Notes
+## LeetCode 1781 — Beauty Sum: Study Notes
 
 Fix a left pointer `i`, slide a right pointer `j` from `i` to end — this enumerates all O(n²) substrings. For each substring, scan the 26-length frequency array to find max and min.
 
@@ -286,3 +286,86 @@ right scouts forward → if window breaks → left takes one step to compensate
 
 - **Time:** O(n) — `left` and `right` each traverse the array once
 - **Space:** O(1) — only a handful of integer variables
+
+---
+
+# Leetcode 904- Sliding Window
+
+## The Core Idea
+
+You can only carry **2 types of fruit** at once. Find the **longest contiguous subarray** with at most 2 distinct values. This is a classic **variable-size sliding window** problem.
+
+---
+
+## Full Annotated Code
+
+```java
+class Solution {
+    public int totalFruit(int[] fruits) {
+
+        int ans = 0;      // best (longest) window length found so far
+        int left = 0;     // left boundary of the sliding window
+        int right = 0;    // right boundary of the sliding window
+
+        // maps fruitType -> how many of that type are currently in the window
+        Map<Integer, Integer> map = new HashMap<>();
+
+        // expand the window rightward one step at a time
+        while (right < fruits.length) {
+
+            // --- STEP 1: Add fruits[right] into the window ---
+            map.put(fruits[right], map.getOrDefault(fruits[right], 0) + 1);
+            // getOrDefault handles the first occurrence (avoids NullPointerException)
+            // map.size() now reflects how many distinct types are in the window
+
+            // --- STEP 2: Shrink from the left while the window is INVALID ---
+            while (map.size() > 2) {          // more than 2 types = invalid
+
+                // decrement the count of the fruit at the left boundary
+                map.put(fruits[left], map.get(fruits[left]) - 1);
+
+                // if count hits 0, that type is gone from the window entirely
+                // removing the key is what actually reduces map.size()
+                if (map.get(fruits[left]) == 0) {
+                    map.remove(fruits[left]);
+                }
+
+                left++;   // move left boundary forward (shrink the window)
+            }
+            // after the inner while, map.size() <= 2 → window is valid again
+
+            // --- STEP 3: Record the best valid window length ---
+            ans = Math.max(ans, right - left + 1);
+            // right - left + 1 = current window length
+
+            right++;   // expand the window for the next iteration
+        }
+
+        return ans;   // longest valid window seen across the entire array
+    }
+}
+```
+
+---
+
+## Step-by-Step Logic Summary
+
+- **Expand first** — always add `fruits[right]` before checking validity.
+- **Shrink with a `while` loop, not `if`** — one removal might not be enough; loop until the window is valid.
+- **Remove the key when count = 0** — this is what keeps `map.size()` accurate. If you skip this, you'll count "ghost" types that no longer exist in the window.
+- **Update answer after shrinking** — only record the length once the window is guaranteed valid.
+
+---
+
+## Complexity
+
+| | |
+|---|---|
+| **Time** | O(n) — every element is added and removed from the map at most once |
+| **Space** | O(1) — the map holds at most 3 keys at any moment before shrinking brings it back to 2 |
+
+---
+
+## The Mental Trigger for Future Problems
+
+Whenever you see **"longest subarray with at most K distinct elements"** → reach for this exact pattern: `HashMap` + variable sliding window.
