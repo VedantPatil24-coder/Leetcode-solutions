@@ -173,3 +173,116 @@ for (int f : freq) {
     }
 }
 ```
+
+---
+
+## Notes: Leetcode 1004 — Max Consecutive Ones III
+
+---
+
+### The Core Idea
+
+The problem asks: *what's the longest subarray with at most K zeros?*
+
+We maintain a window `[left, right]` that **only grows when we find a better (longer) window**, and shrinks by exactly 1 when it becomes invalid. Since the window never shrinks net, `right - left + 1` never decreases, so we skip tracking `max` entirely.
+
+---
+
+### Line-by-Line Breakdown
+
+```
+int left = 0;
+int zeroCount = 0;
+```
+
+- `left` is the left boundary of our window. Starts at index 0.
+- `zeroCount` tracks how many zeros are currently inside the window `[left, right]`.
+- No `max` variable needed — explained at the end.
+
+---
+
+```
+for (int right = 0; right < nums.length; right++) {
+```
+
+- `right` is the right boundary, expanding the window one step at a time.
+- **Right only ever moves forward** — this is non-negotiable in sliding window.
+
+---
+
+```
+    if (nums[right] == 0) {
+        zeroCount++;
+    }
+```
+
+- We just included `nums[right]` into our window, so we update our constraint tracker.
+- If it's a 1, the window absorbed it for free — no bookkeeping needed.
+
+---
+
+```
+    if (zeroCount > k) {
+        if (nums[left] == 0) {
+            zeroCount--;
+        }
+        left++;
+    }
+```
+This is the **shrink step**. Notice it's an `if`, not a `while`. Here's why each line matters:
+
+- `if (zeroCount > k)` — window is invalid (too many zeros). We need to shrink.
+- `if (nums[left] == 0) zeroCount--` — before evicting `nums[left]`, check if it was a zero. If yes, decrement the count since that zero is leaving the window.
+- `left++` — evict the leftmost element, shrinking the window from the left.
+
+**Why `if` and not `while`?**
+
+We only care about the *maximum* window ever seen. If the window is invalid, we shrink by exactly 1 to keep it the same size. We never shrink it *smaller* than our current best — there's no point. The window only grows when `right` outpaces `left`.
+
+---
+
+```
+return nums.length - left;
+```
+
+- At the end of the loop, `right == nums.length`, so the window size is `nums.length - left`.
+- Because the window **never shrank net** throughout the loop, this final window size equals the largest valid window we ever encountered.
+- This replaces the need for `Math.max(...)` on every iteration.
+
+---
+
+### Why No `max` Variable?
+
+Think about what happens to `right - left + 1` over time:
+
+| Event | Effect on window size |
+|---|---|
+| `right` moves forward, window valid | size **+1** |
+| `right` moves forward, window invalid | `left` also moves forward → size **stays same** |
+| `left` moves without `right` moving | **never happens** |
+
+The window size is non-decreasing. So the last window = the biggest window.
+
+---
+
+### The Mental Model
+
+```
+[  valid window  ]
+ ^               ^
+left            right
+
+right scouts forward → if window breaks → left takes one step to compensate
+```
+
+- **Right** is a scout that always moves forward
+- **Left** is a janitor that steps forward only when the window is broken
+- The janitor never asks the scout to go back *(no `right--`)*
+- The janitor never over-corrects *(no `while`, only `if`)*
+
+---
+
+### Complexity
+
+- **Time:** O(n) — `left` and `right` each traverse the array once
+- **Space:** O(1) — only a handful of integer variables
