@@ -73,6 +73,102 @@ Fix a left pointer `i`, slide a right pointer `j` from `i` to end — this enume
 
 This gives **O(n² × 26) = O(n²)** time, which is optimal here.
 
+## LeetCode 424 — Character Replacement Notes
+
+### Line-by-Line Explanation
+
+```
+int[] freq = new int[26];
+```
+Frequency array tracking count of each uppercase letter in the current window. Index 0 = 'A', index 25 = 'Z'.
+
+```
+int left = 0;
+int right = 0;
+int maxFreq = 0;
+int result = 0;
+```
+- `left` — left boundary of the sliding window
+- `right` — right boundary of the sliding window
+- `maxFreq` — highest frequency of any single character seen so far in the current window
+- `result` — longest valid window length found so far
+
+```
+while (right < s.length()) {
+```
+Expand the window by moving `right` forward each iteration.
+
+```
+freq[s.charAt(right) - 'A']++;
+```
+Add the new character at `right` into the window by incrementing its frequency count.
+
+```
+maxFreq = Math.max(maxFreq, freq[s.charAt(right) - 'A']);
+```
+Update `maxFreq` using only the character we just added. Since we add one character per iteration, only that character can increase the maximum frequency.
+
+```
+if (right - left + 1 - maxFreq > k) {
+```
+Check if the current window is invalid. The difference between window size and `maxFreq` is the number of replacements required. If it exceeds `k`, shrink the window.
+
+```
+    freq[s.charAt(left) - 'A']--;
+    left++;
+```
+Shrink the window from the left by removing the leftmost character and advancing `left`.
+
+```
+result = Math.max(result, right - left + 1);
+```
+Record the current valid window length. This must be computed after the potential shrink so it always reflects the current `left` and `right` pointers.
+
+```
+right++;
+```
+Advance `right` for the next iteration.
+
+```
+return result;
+```
+Return the length of the longest valid substring found.
+
+---
+
+### The Two Bugs — What Went Wrong and Why
+
+**Bug 1 — `while` instead of `if`**
+
+```java
+while (windowSize - maxFreq > k) {
+    freq[s.charAt(left) - 'A']--;
+    left++;
+    // windowSize never updates here — condition uses stale value
+}
+```
+
+The `while` loop keeps shrinking `left` while `maxFreq` is not decremented. This can make the condition invalid or cause the loop to behave incorrectly. The algorithm only needs to shrink the window by one position when the window becomes invalid, so `if` is the correct choice.
+
+**Bug 2 — stale `windowSize` variable**
+
+```java
+int windowSize = (right - left + 1);  // computed before shrink
+if (windowSize - maxFreq > k) {
+    freq[s.charAt(left) - 'A']--;
+    left++;
+}
+result = Math.max(result, windowSize); // records the pre-shrink size — wrong
+```
+
+`windowSize` is computed before `left` changes. If the window shrinks, the recorded size is too large. The fix is to compute the current window length from `right - left + 1` after adjusting `left`.
+
+---
+
+### Key Takeaway
+
+Once you introduce pointer movement inside the loop body, avoid storing derived values like `windowSize` in a separate variable. Recompute `right - left + 1` where you actually need it so it always reflects the current state.
+
 ---
 
 ## Your Final Code (Annotated)
