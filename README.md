@@ -359,6 +359,93 @@ Think about what happens to `right - left + 1` over time:
 
 The window size is non-decreasing. So the last window = the biggest window.
 
+## Notes: Leetcode 1358 — `numberOfSubstrings`
+
+```
+class Solution {
+    public int numberOfSubstrings(String s) {
+```
+Entry point. Takes the input string `s`.
+
+---
+
+```
+        int[] lastSeen = {-1, -1, -1};
+```
+
+- Fixed array of size 3, one slot per character: `lastSeen[0]` → `'a'`, `lastSeen[1]` → `'b'`, `lastSeen[2]` → `'c'`.
+- Initialized to `-1` meaning "not seen yet."
+
+---
+
+```
+        int count = 0;
+```
+Accumulates the total number of valid substrings.
+
+---
+
+```
+        for (int i = 0; i < s.length(); i++) {
+```
+Iterate over every character, treating `i` as the **right boundary** of the current substring.
+
+---
+
+```
+            lastSeen[s.charAt(i) - 'a'] = i;
+```
+
+- `s.charAt(i) - 'a'` maps `'a'→0`, `'b'→1`, `'c'→2`.
+- Records the **most recent index** where this character was seen.
+
+---
+
+```
+            if (lastSeen[0] >= 0 && lastSeen[1] >= 0 && lastSeen[2] >= 0) {
+```
+Only proceed if **all three characters have appeared at least once** in `s[0..i]`. Before this, no valid substring ending at `i` can exist.
+
+---
+
+```
+                int minIdx = Math.min(lastSeen[0], Math.min(lastSeen[1], lastSeen[2]));
+```
+Finds the **earliest** of the three last-seen positions. This is the key step — any substring ending at `i` that starts at index `≤ minIdx` is guaranteed to contain all of `a`, `b`, `c`.
+
+---
+
+```
+                count += (minIdx + 1);
+```
+
+- Valid starting positions are `0, 1, 2, ... minIdx` — that's exactly `minIdx + 1` choices.
+- Each one forms a unique valid substring ending at `i`, so add them all at once.
+
+---
+
+```
+        return count;
+```
+Return the final answer after scanning the whole string.
+
+---
+
+## Quick Example
+
+For `s = "abcabc"`, when `i = 5` (last `'c'`):
+
+- `lastSeen = [3, 4, 5]`
+- `minIdx = 3`
+- Add `3 + 1 = 4` substrings: starting at indices `0, 1, 2, 3`
+
+---
+
+## Complexity
+
+- **Time:** O(n) — single pass
+- **Space:** O(1) — fixed size-3 array, no extra structures
+
 ---
 
 ### The Mental Model
