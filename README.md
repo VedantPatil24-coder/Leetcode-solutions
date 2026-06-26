@@ -171,6 +171,71 @@ Once you introduce pointer movement inside the loop body, avoid storing derived 
 
 ---
 
+## Leetcode 1423 - Maximum Points You Can Obtain from Cards
+
+---
+
+### Problem Intuition
+
+- *You pick `k` cards from either end (left or right) of the array*
+- *Equivalent to: leave out a contiguous subarray of size `n-k` in the middle*
+- *Maximize picked cards = Maximize totalSum - Minimize that middle window*
+
+---
+
+### Line-by-Line Breakdown
+
+**Setup**
+
+- `int totalSum = 0` → *accumulator for sum of all cards*
+- `int n = cardPoints.length` → *total number of cards*
+- `int windowSize = n - k` → *size of the subarray we want to EXCLUDE (the "leftover" middle window)*
+- `for(int num: cardPoints) totalSum += num` → *compute total sum of all cards*
+
+**Edge Case**
+
+- `if(windowSize == 0) return totalSum` → *if k == n, pick all cards, answer is totalSum directly*
+
+**Initialize First Window**
+
+- `int windowSum = 0` → *tracks sum of current sliding window*
+- `for(int i = 0; i < windowSize; i++) windowSum += cardPoints[i]` → *compute sum of first window (index 0 to windowSize-1)*
+- `int minWindowSum = windowSum` → *assume first window is the minimum to start*
+
+**Slide the Window**
+
+- `for(int i = windowSize; i < n; i++)` → *slide window one step right each iteration*
+- `windowSum += cardPoints[i]` → *add incoming right element*
+- `windowSum -= cardPoints[i - windowSize]` → *remove outgoing left element (keeps window size fixed)*
+- `minWindowSum = Math.min(windowSum, minWindowSum)` → *track minimum window sum seen so far*
+
+**Answer**
+
+- `return totalSum - minWindowSum` → *removing the minimum subarray = maximum score from picked cards*
+
+---
+
+**Dry Run Example**
+
+`cardPoints = [1,2,3,4,5,6,1], k = 3`
+
+- `n = 7, windowSize = 4, totalSum = 22`
+- First window `[1,2,3,4]` → `windowSum = 10`, `minWindowSum = 10`
+- Slide → `[2,3,4,5]` → `windowSum = 14`
+- Slide → `[3,4,5,6]` → `windowSum = 18`
+- Slide → `[4,5,6,1]` → `windowSum = 16`
+- `minWindowSum = 10`
+- **Answer = 22 - 10 = 12** ✅
+
+---
+
+### Complexity
+
+- **Time:** `O(n)` — one pass for totalSum + one pass for sliding window
+- **Space:** `O(1)` — no extra data structures
+
+---
+
 ## Your Final Code (Annotated)
 
 ```java
