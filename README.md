@@ -1,6 +1,61 @@
 # Leetcode-solutions
 All the solutions of the leetcode solutions I have solved yet (With proper notes)
 
+## LeetCode 2 — Add Two Numbers Notes
+
+This solution builds the answer digit by digit while keeping track of the carry.
+
+- Use a dummy head so the first inserted node is handled the same way as every later node.
+- Keep two pointers for the input lists so the originals remain intact.
+- The `carry` value can still be non-zero after the loop ends, so handle it once after the loop.
+
+```java
+class Solution {
+    public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
+        ListNode dummyNode = new ListNode(-1);
+        ListNode t1 = l1;
+        ListNode t2 = l2;
+        ListNode curr = dummyNode;
+        int carry = 0;
+
+        while (t1 != null || t2 != null) {
+            int sum = carry;
+            if (t1 != null) {
+                sum += t1.val;
+            }
+            if (t2 != null) {
+                sum += t2.val;
+            }
+
+            ListNode newNode = new ListNode(sum % 10);
+            carry = sum / 10;
+
+            curr.next = newNode;
+            curr = curr.next;
+
+            if (t1 != null) {
+                t1 = t1.next;
+            }
+            if (t2 != null) {
+                t2 = t2.next;
+            }
+        }
+
+        if (carry > 0) {
+            curr.next = new ListNode(carry);
+        }
+
+        return dummyNode.next;
+    }
+}
+```
+
+### Remember
+- The dummy head pattern keeps insertion logic simple.
+- `carry` outlives the loop, so it must be handled after the loop finishes.
+
+---
+
 ## Leetcode 451
 
 Easy to understand and very simple
