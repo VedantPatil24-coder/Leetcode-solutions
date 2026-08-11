@@ -514,6 +514,129 @@ Iterate over every character, treating `i` as the **right boundary** of the curr
 
 ```
             lastSeen[s.charAt(i) - 'a'] = i;
+
+# Leetcode 2095 — Delete the Middle Node of a Linked List
+
+---
+
+## Problem Summary
+
+Given the head of a singly linked list, delete the **middle node** and return the updated list.
+
+The middle node is defined as the node at index **⌊n/2⌋** (0-indexed), where n is the total number of nodes.
+
+**Examples:**
+
+- `[1,2,3,4,5]` → delete index 2 (value 3) → `[1,2,4,5]`
+- `[1,2,3,4]` → delete index 2 (value 3) → `[1,2,4]`
+- `[1]` → only one node → return `null`
+
+---
+
+## Approach — Two Pointer (Slow & Fast)
+
+This solution uses the classic **Floyd's Tortoise and Hare** technique to find the middle node in a single pass, without knowing the length of the list.
+
+### Core Idea
+
+- `fast` moves **2 steps** per iteration
+- `slow` moves **1 step** per iteration
+- When `fast` reaches the end, `slow` is exactly at the **middle**
+- A `prev` pointer tracks the node just **before** `slow` to perform the deletion
+
+---
+
+## Key Implementation Detail — Where to Start `fast`
+
+This is the most critical decision in this problem.
+
+| `fast` starts at | Slow lands on (even n) | Matches ⌊n/2⌋? |
+
+|---|---|---|
+
+| `head` | right-middle (ceil) | ✅ Yes |
+
+| `head.next` | left-middle (floor) | ❌ No |
+
+**Always start `fast = head` for this problem.** Starting at `head.next` shifts the deletion one index too early for even-length lists.
+
+---
+
+## Walkthrough — Tracing Small Cases
+
+**n=2, list = [1, 2]**
+
+```
+Initial:  prev=null, slow→1, fast→1
+Iter 1:   fast→null (fast.next.next), prev→1, slow→2
+Loop ends. prev.next = slow.next = null → deletes node 2 ✓
+```
+
+**n=4, list = [1, 2, 3, 4]**
+
+```
+Initial:  prev=null, slow→1, fast→1
+Iter 1:   fast→3, prev→1, slow→2
+Iter 2:   fast→null, prev→2, slow→3
+Loop ends. prev.next = slow.next → deletes node 3 (index 2) ✓
+```
+
+---
+
+## Final Code
+
+```
+class Solution {
+    public ListNode deleteMiddle(ListNode head) {
+        // Edge case: single node or empty list
+        if (head == null || head.next == null) {
+            return null;
+        }
+
+        ListNode slow = head;
+        ListNode fast = head;   // Must start at head, not head.next
+        ListNode prev = null;
+
+        while (fast != null && fast.next != null) {
+            fast = fast.next.next;
+            prev = slow;
+            slow = slow.next;
+        }
+
+        // slow is now at the middle node — skip it
+        prev.next = slow.next;
+        return head;
+    }
+}
+```
+
+---
+
+## Common Mistake to Avoid
+
+Starting `fast = head.next` instead of `fast = head` is a common off-by-one error that causes two bugs:
+
+- **NullPointerException** on a 2-node list because the loop never runs and `prev` stays `null`
+- **Wrong node deleted** on even-length lists — index 1 is deleted instead of index 2
+
+---
+
+## Complexity
+
+| | Complexity |
+
+|---|---|
+
+| **Time** | O(n) — single pass through the list |
+
+| **Space** | O(1) — only pointer variables used |
+
+---
+
+## Patterns Used
+
+- **Slow/Fast Two Pointer** — finds the middle of a linked list in O(n) without computing length
+- **Prev Pointer for Deletion** — maintains a predecessor node to perform
 ```
 
 - `s.charAt(i) - 'a'` maps `'a'→0`, `'b'→1`, `'c'→2`.
