@@ -398,6 +398,115 @@ for (int f : freq) {
 
 ### The Core Idea
 
+# Leetcode 234 — Palindrome Linked List
+
+## Problem
+
+Check if a singly linked list is a palindrome. Must be **O(n) time** and **O(1) space**.
+
+---
+
+## Intuition
+
+You can't traverse a linked list backwards, so the trick is to **reverse the second half in-place** and compare it against the first half.
+
+---
+
+## Approach — 3 Step Decomposition
+
+### Step 1: Find the Middle (Fast & Slow Pointers)
+
+```
+ListNode slow = head, fast = head;
+while (fast != null && fast.next != null) {
+    slow = slow.next;      // moves +1
+    fast = fast.next.next; // moves +2
+}
+// slow is now at the midpoint
+```
+
+- `fast` moves twice as fast as `slow`, so when `fast` reaches the end, `slow` is at the middle.
+- For **odd-length lists** (e.g. `1->2->3->2->1`), `slow` lands on the exact center node — this is fine, it gets included in the reversed half and still matches correctly.
+- For **even-length lists** (e.g. `1->2->2->1`), `slow` lands on the start of the second half.
+
+---
+
+### Step 2: Reverse the Second Half (In-place)
+
+```
+ListNode prev = null, curr = slow;
+while (curr != null) {
+    ListNode next = curr.next;
+    curr.next = prev;
+    prev = curr;
+    curr = next;
+}
+// prev is now the head of the reversed second half
+```
+
+Standard iterative reversal using three pointers: `prev`, `curr`, `next`. Each node's pointer is flipped one at a time.
+
+---
+
+### Step 3: Compare Both Halves
+
+```
+ListNode left = head, right = prev;
+while (right != null) {
+    if (left.val != right.val) return false;
+    left = left.next;
+    right = right.next;
+}
+return true;
+```
+
+- `right` drives the loop because the reversed half is shorter than or equal to the left half.
+- If every value matches, it's a palindrome.
+
+---
+
+### Step 4: Restore the List *(Best Practice)*
+
+```
+prev = null; curr = secondHalfHead;
+while (curr != null) {
+    ListNode next = curr.next;
+    curr.next = prev;
+    prev = curr;
+    curr = next;
+}
+```
+Not required by LeetCode, but **always restore mutated input in interviews**. Mutating the caller's data structure is a red flag in production systems.
+
+---
+
+## Complexity
+
+| | |
+
+|---|---|
+
+| **Time** | O(n) — three linear passes |
+
+| **Space** | O(1) — no extra data structures |
+
+---
+
+## Patterns Used
+
+- **Fast & Slow Pointers** — find midpoint in O(1) space. Reuse on: middle of linked list, cycle detection.
+- **In-place Linked List Reversal** — flip pointers with `prev/curr/next`. Reuse on: reverse in k-groups, reorder list.
+- **Two-pointer Comparison** — compare two sub-lists simultaneously. Reuse on: any symmetry or merge problem.
+- **Subproblem Decomposition** — hard problem = (find mid) + (reverse) + (compare). Recognizing this pattern is the key interview skill here.
+
+---
+
+## Key Takeaways
+
+- Never reach for an array or stack when the problem says O(1) space — think in-place manipulation.
+- Always ask: *"Does my solution leave the input in a valid state?"* after solving.
+- This problem is a **composition of three classic primitives**, each independently useful.
+
 # LeetCode 142 — Linked List Cycle II
 
 ## Problem
