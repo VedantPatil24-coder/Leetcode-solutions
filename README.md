@@ -398,6 +398,70 @@ for (int f : freq) {
 
 ### The Core Idea
 
+# LeetCode 142 — Linked List Cycle II
+
+## Problem
+
+Given the head of a linked list, return the **node where the cycle begins**. If there is no cycle, return `null`.
+
+---
+
+## Approach — Floyd's Cycle Detection (Tortoise and Hare)
+
+The solution works in **two phases** using two pointers (`slow` and `fast`).
+
+---
+
+### Phase 1: Detect if a Cycle Exists
+
+```
+while (fast != null && fast.next != null) {
+    slow = slow.next;       // moves +1 step
+    fast = fast.next.next;  // moves +2 steps
+    if (slow == fast) { ... }
+}
+```
+
+- `slow` moves **1 step** at a time, `fast` moves **2 steps** at a time.
+- If a cycle exists, `fast` will eventually "lap" `slow` and they will meet **inside the cycle**.
+- If `fast` reaches `null`, there is no cycle → return `null`.
+
+---
+
+### Phase 2: Find the Cycle Entrance
+
+```
+slow = head;
+while (slow != fast) {
+    slow = slow.next;
+    fast = fast.next;
+}
+return slow; // cycle entrance
+```
+
+- Reset `slow` to `head`. Leave `fast` at the **meeting point**.
+- Move both pointers **1 step at a time**.
+- They will meet exactly at the **cycle entrance node**.
+
+---
+
+### Why Does the Reset Trick Work? (The Math)
+
+Let:
+
+- `m` = distance from **head → cycle entrance**
+- `k` = distance from **cycle entrance → meeting point**
+- `L` = total **cycle length**
+
+When they meet inside the cycle:
+
+- `slow` has traveled: `m + k`
+- `fast` has traveled: `m + k + L` (one full extra loop)
+- Since fast moves 2x: `2(m + k) = m + k + L` → **`m = L - k`**
+
+This means the distance from **head to the entrance** equals the distance from the **meeting point back to the entrance** (going forward around the cycle). So resetting one pointer to head and moving both at speed 1 guarantees they meet at the entrance.
+
+
 The problem asks: *what's the longest subarray with at most K zeros?*
 
 We maintain a window `[left, right]` that **only grows when we find a better (longer) window**, and shrinks by exactly 1 when it becomes invalid. Since the window never shrinks net, `right - left + 1` never decreases, so we skip tracking `max` entirely.
