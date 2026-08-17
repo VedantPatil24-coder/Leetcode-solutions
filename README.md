@@ -968,3 +968,111 @@ class Solution {
 ## The Mental Trigger for Future Problems
 
 Whenever you see **"longest subarray with at most K distinct elements"** → reach for this exact pattern: `HashMap` + variable sliding window.
+
+---
+
+# LeetCode 148 — Sort List
+
+## Problem
+
+Sort a linked list in **O(n log n)** time and **O(log n)** space.
+
+---
+
+## Approach — Top-Down Merge Sort
+
+Merge sort is the natural fit for linked lists because:
+
+- **Splitting** is a clean pointer operation (no index shifting like arrays)
+- **Merging** is O(n) and only needs pointer rewiring, no extra array allocation
+- Random access isn't needed, so quicksort's O(1) pivot trick doesn't apply here
+
+The solution breaks into three responsibilities:
+
+---
+
+### 1. `sortList()` — Divide & Conquer Driver
+
+```
+public ListNode sortList(ListNode head) {
+    if (head == null || head.next == null) return head;
+
+    ListNode mid = findMid(head);
+    ListNode rightHead = mid.next;
+    mid.next = null;                    // Split list into two halves
+
+    ListNode newLeft = sortList(head);
+    ListNode newRight = sortList(rightHead);
+
+    return merge(newLeft, newRight);
+}
+```
+
+- **Base case:** A list of 0 or 1 nodes is already sorted — return it as-is.
+- Find the midpoint, physically **sever the list** by setting `mid.next = null`, then recursively sort both halves and merge results.
+- The recursion tree has **log n levels**, and each level does **O(n)** merge work → total **O(n log n)**.
+
+---
+
+### 2. `findMid()` — Slow & Fast Pointer
+
+```
+public ListNode findMid(ListNode head) {
+    ListNode slow = head;
+    ListNode fast = head.next;      // ← starts at head.next, not head
+
+    while (fast != null && fast.next != null) {
+        fast = fast.next.next;
+        slow = slow.next;
+    }
+    return slow;
+}
+```
+
+- `slow` moves one step at a time, `fast` moves two — when fast reaches the end, slow is at the middle.
+- **Key detail:** `fast` starts at `head.next` instead of `head`. This makes the midpoint lean **left** for even-length lists.
+- Example: `[1, 2, 3, 4]` → mid is node `2`, not `3`
+
+- Without this, the right half could equal the full list in some edge cases, causing **infinite recursion**.
+
+---
+
+### 3. `merge()` — Merge Two Sorted Lists
+
+```
+public ListNode merge(ListNode head1, ListNode head2) {
+    ListNode mergeLL = new ListNode(-1);    // Dummy/sentinel head
+    ListNode temp = mergeLL;
+
+    while (head1 != null && head2 != null) {
+        if (head1.val <= head2.val) {
+            temp.next = head1;
+            head1 = head1.next;
+        } else {
+            temp.next = head2;
+            head2 = head2.next;
+        }
+        temp = temp.next;
+    }
+
+    // Attach whichever list still has remaining nodes
+    if (head1 != null) temp.next = head1;
+    if (head2 != null) temp.next = head2;
+
+    return mergeLL.next;
+}
+```
+
+- The **dummy node** (`new ListNode(-1)`) is a sentinel — it gives `temp` a starting point so you never need special handling for attaching the first node.
+- Compares heads of both lists, always appending the smaller value.
+- Once one list is exhausted, the remaining list is already sorted and linked — a **single pointer assignment** attaches it (no need to loop node by node).
+- Returns `mergeLL.next` to skip the dummy node.
+
+---
+
+## Complexity
+
+| | Complexity | Reason |
+|---|---|---|
+| **Time** | O(n log n) | log n splits × O(n) merge per level |
+| **Space** | O(log n) | Recursive call stack depth |
