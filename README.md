@@ -1,6 +1,127 @@
 # Leetcode-solutions
 All the solutions of the leetcode solutions I have solved yet (With proper notes)
 
+# LC 34 — Search for a Range (First & Last Position)
+
+## Problem Summary
+
+Given a sorted array `nums` and a `target`, return `[firstIndex, lastIndex]` of the target. Return `[-1, -1]` if not found.
+
+---
+
+## Core Insight
+
+A single binary search stops at *any* match — but you need the *leftmost* and *rightmost* match. The trick is to **not stop when you find the target**. Instead, record it and keep searching in one direction to push the boundary further.
+
+> Run **two separate binary searches** on the same array — one biased left, one biased right.
+
+---
+
+## Key Concepts
+
+### 1. Left-Biased Binary Search (Find First Occurrence)
+When `nums[mid] == target`, record `mid` but continue searching **left** by setting `right = mid - 1`.
+
+```java
+private int findFirst(int[] nums, int target) {
+    int left = 0, right = nums.length - 1, result = -1;
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+        if (nums[mid] == target) {
+            result = mid;       // record match
+            right = mid - 1;   // bias left — keep searching
+        } else if (nums[mid] < target) {
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
+    }
+    return result;
+}
+```
+
+### 2. Right-Biased Binary Search (Find Last Occurrence)
+When `nums[mid] == target`, record `mid` but continue searching **right** by setting `left = mid + 1`.
+
+```java
+private int findLast(int[] nums, int target) {
+    int left = 0, right = nums.length - 1, result = -1;
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+        if (nums[mid] == target) {
+            result = mid;      // record match
+            left = mid + 1;   // bias right — keep searching
+        } else if (nums[mid] < target) {
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
+    }
+    return result;
+}
+```
+
+### 3. Final Solution
+
+```java
+class Solution {
+    public int[] searchRange(int[] nums, int target) {
+        return new int[]{findFirst(nums, target), findLast(nums, target)};
+    }
+    // ... findFirst and findLast from above
+}
+```
+
+---
+
+## Common Mistakes to Avoid
+
+**Off-by-one on `right` bound**
+
+Always initialize `right = nums.length - 1`, not `nums.length`. Using `nums.length` causes `ArrayIndexOutOfBoundsException` when `mid` is computed.
+
+**Stopping at the first match**
+
+Storing `mid` and immediately returning finds *a* match, not the *first* or *last*. You must continue searching after recording the result.
+
+**Java array literal syntax**
+
+`[a, b]` is Python/JavaScript. In Java, returning an inline array is:
+
+```java
+return new int[]{a, b};
+```
+
+**Integer overflow in midpoint calculation**
+
+`(left + right) / 2` can overflow for large indices. Always use:
+
+```java
+int mid = left + (right - left) / 2;
+```
+
+---
+
+## Complexity
+
+| | Complexity |
+
+|---|---|
+
+| Time | O(log n) — two binary searches |
+
+| Space | O(1) — no extra memory |
+
+---
+
+## Patterns This Problem Teaches
+
+**Biased Binary Search** — when you find the target, don't stop. Push the boundary further left or right depending on what you need.
+
+**Two-Pass Binary Search** — many range/boundary problems on sorted arrays decompose into two independent searches (lower bound + upper bound). Recognize this early.
+
+---
+
 ## LeetCode 2 — Add Two Numbers Notes
 
 This solution builds the answer digit by digit while keeping track of the carry.
