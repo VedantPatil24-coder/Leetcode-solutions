@@ -1,6 +1,31 @@
 # Leetcode-solutions
 All the solutions of the leetcode solutions I have solved yet (With proper notes)
 
+## LC 18 - 4Sum
+
+The solution sorts the array, fixes the first two numbers, and uses two pointers to find the remaining pair.
+
+### Approach
+
+- Sort `nums` so pointer movement can tell us whether to increase or decrease the sum.
+- Choose `nums[i]` and `nums[j]` with nested loops.
+- Search the remaining range with `left` and `right` pointers.
+- Skip duplicate values at every level so each quadruplet appears only once.
+- Use `long` for the sum to avoid integer overflow when adding four `int` values.
+
+```java
+long sum = (long) nums[i] + nums[j] + nums[left] + nums[right];
+```
+
+When `sum` equals `target`, record the quadruplet and move both pointers. When the sum is too small, move `left` right; when it is too large, move `right` left.
+
+### Complexity
+
+- **Time:** `O(n^3)`
+- **Space:** `O(1)` extra space, excluding the returned result
+
+---
+
 # LC 34 — Search for a Range (First & Last Position)
 
 ## Problem Summary
