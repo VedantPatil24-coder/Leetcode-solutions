@@ -1222,3 +1222,71 @@ public ListNode merge(ListNode head1, ListNode head2) {
 |---|---|---|
 | **Time** | O(n log n) | log n splits × O(n) merge per level |
 | **Space** | O(log n) | Recursive call stack depth |
+
+---
+
+# LC 239 — Sliding Window Maximum
+
+## Problem
+
+Given an array `nums` and window size `k`, return the maximum of each sliding window as it moves left to right.
+
+---
+
+## Key Insight
+
+A **monotonic deque storing indices** lets you find the window maximum in O(1) per step, giving an overall **O(n)** solution.
+
+---
+
+## Algorithm (Monotonic Deque)
+
+For each index `i`:
+
+1. **Evict expired indices** from the front. If `dq.peekFirst() < i - k + 1`, it is outside the window.
+2. **Maintain decreasing order** by removing from the back any index whose value is less than `nums[i]`.
+3. Add `i` to the back.
+4. Record the answer only when `i >= k - 1`, after the first full window is complete.
+
+## Dry Run — `nums = [1, 3, 1, 2]`, `k = 2`
+
+| i | nums[i] | Deque (indices) | Window | Answer recorded |
+|---|---|---|---|---|
+| 0 | 1 | [0] | — | — |
+| 1 | 3 | [1] | [1, 3] | 3 |
+| 2 | 1 | [1, 2] | [3, 1] | 3 |
+| 3 | 2 | [1, 3] | [1, 2] | 2 |
+
+Output: `[3, 3, 2]`
+
+---
+
+## Complexity
+
+| | |
+|---|---|
+| Time | O(n) — each index is added and removed at most once |
+| Space | O(k) — deque holds at most k indices |
+
+---
+
+## Patterns & Takeaways
+
+- Store indices, not values. Indices let you check window expiry (`index < i - k + 1`) and look up the value (`nums[index]`) at the same time.
+- Both cleanups must be `while` loops, not `if`; you may need to remove multiple elements at once.
+- Delay answer collection until `i >= k - 1`; before that, the first window is not fully formed.
+- Pre-size the output array as `int[n - k + 1]` when the size is known; this is cleaner than using a `List` and converting later.
+
+Three questions to self-check any sliding-window deque solution:
+
+1. Am I evicting expired indices from the front?
+2. Am I cleaning the back in a `while` loop until monotonicity holds?
+3. Am I collecting answers only after the first full window?
+
+---
+
+## Common Mistakes
+
+- `isEmpty` without `()` is invalid; it is a method call, not a field.
+- Use `ans[i] = value` for an array, or `ans.add(value)` for a list. `ans.get(...)` only reads from a list.
+- Use a `while` loop for cleanup instead of a single `if`, because multiple indices may need to be removed.
