@@ -1290,3 +1290,48 @@ Three questions to self-check any sliding-window deque solution:
 - `isEmpty` without `()` is invalid; it is a method call, not a field.
 - Use `ans[i] = value` for an array, or `ans.add(value)` for a list. `ans.get(...)` only reads from a list.
 - Use a `while` loop for cleanup instead of a single `if`, because multiple indices may need to be removed.
+
+---
+
+# LC 84 — Largest Rectangle in Histogram
+
+## Problem Summary
+
+Given an array of bar heights, find the area of the largest rectangle that can be formed using consecutive bars.
+
+---
+
+## Core Insight
+
+For every bar `i`, treat it as the **shortest bar** in some rectangle. The rectangle extends left and right until it hits a bar shorter than `arr[i]`. So you need:
+
+- **NSL[i]** — index of the nearest smaller bar to the left
+- **NSR[i]** — index of the nearest smaller bar to the right
+
+Then: `area = arr[i] * (NSR[i] - NSL[i] - 1)`
+
+---
+
+## Width Formula Derivation
+
+The valid span for bar `i` is from index `NSL[i]+1` to `NSR[i]-1`.
+
+```
+width = (NSR[i] - 1) - (NSL[i] + 1) + 1
+    = NSR[i] - NSL[i] - 1
+```
+
+---
+
+## Sentinel Values (Critical)
+
+When no smaller element exists, use out-of-bounds indices so the formula works uniformly without special cases:
+
+| Situation | Sentinel |
+|---|---|
+| No smaller bar to the left | `NSL[i] = -1` |
+| No smaller bar to the right | `NSR[i] = n` |
+
+With these sentinels, `width = NSR[i] - NSL[i] - 1` handles edge bars correctly without any extra if-checks.
+
+> **Common trap**: If you store `-1` as the NSR sentinel, it participates in arithmetic and gives a wrong (negative) width. Always use `n` as the right sentinel.
