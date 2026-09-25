@@ -1437,3 +1437,190 @@ When no smaller element exists, use out-of-bounds indices so the formula works u
 With these sentinels, `width = NSR[i] - NSL[i] - 1` handles edge bars correctly without any extra if-checks.
 
 > **Common trap**: If you store `-1` as the NSR sentinel, it participates in arithmetic and gives a wrong (negative) width. Always use `n` as the right sentinel.
+
+# LC 151 — Reverse Words in a String
+
+## Core Idea
+
+The important idea in this solution is:
+
+> **Find each word from left to right, but insert every new word before the previous result.**
+
+For example:
+
+```text
+the sky is blue
+```
+
+Words are discovered in this order:
+
+```text
+the → sky → is → blue
+```
+
+But because each new word is placed in front:
+
+```text
+the
+sky + the
+is + sky the
+blue + is sky the
+```
+
+Final:
+
+```text
+blue is sky the
+```
+
+## 1. Initial Variables
+
+```java
+int i = 0;
+int n = s.length();
+String result = "";
+```
+
+### `i`
+
+`i` moves through the string and keeps track of the current position.
+
+```text
+the sky is blue
+↑
+i
+```
+
+### `n`
+
+`n` stores the length of the string so the solution does not repeatedly call `s.length()`.
+
+### `result`
+
+`result` stores the final reversed word order.
+
+## 2. Outer Loop
+
+```java
+while (i < n)
+```
+
+This keeps processing words until `i` reaches the end of the string. Think of `i` as: **"Where am I currently in the string?"**
+
+## 3. Skipping Spaces
+
+```java
+while (i < n && s.charAt(i) == ' ')
+    i++;
+```
+
+This handles extra spaces in input such as `"  the   sky is blue  "`. The loop advances `i` until it reaches a non-space character.
+
+```text
+"   the"
+ ↑
+ i
+```
+
+After the loop, `i` points to the `t`:
+
+```text
+"   the"
+    ↑
+    i
+```
+
+## 4. Checking if We Reached the End
+
+```java
+if (i >= n) break;
+```
+
+After skipping spaces, we may have reached the end. For example, after processing `"sky"` in `"the sky   "`, `i` moves through the remaining spaces until `i == n`, so there is nothing left to process.
+
+## 5. Finding the End of the Word
+
+```java
+int j = i + 1;
+```
+
+`i` is the start of the word. `j` finds where the word ends.
+
+For `"the sky"`, initially `i = 0` and `j = 1`. Then:
+
+```java
+while (j < n && s.charAt(j) != ' ')
+    j++;
+```
+
+`j` advances until it reaches a space. For `"the"`, `i = 0` and `j = 3`, so the word occupies indices `0` through `2`.
+
+## 6. Extracting the Word
+
+```java
+String sub = s.substring(i, j);
+```
+
+`substring(i, j)` includes `i` but does not include `j`. Thus, `substring(0, 3)` gives `"the"`; `j` points at the space after the word, or at the end of the string.
+
+## 7. The Main Trick
+
+```java
+if (result.length() == 0)
+    result = sub;
+else
+    result = sub + " " + result;
+```
+
+This is the heart of the solution. For the first word, `sub = "the"` and `result = ""`, so `result` becomes `"the"`. For the next word, `sub = "sky"` and `result = "the"`; prepending gives `"sky the"`. Processing `"is"` gives `"is sky the"`, and finally `"blue is sky the"`.
+
+The pattern to remember is:
+
+```java
+result = currentWord + " " + oldResult;
+```
+
+This reverses the word order.
+
+## 8. Moving to the Next Word
+
+```java
+i = j + 1;
+```
+
+At this point, `j` is either pointing at a space or at the end of the string. Moving `i` to `j + 1` positions it after the separator and ready for the next word. Any additional spaces are skipped at the start of the next loop iteration.
+
+## Pointer Roles
+
+- `i` points to the start of the current word.
+- `j` scans forward to find the end of the current word.
+- `substring(i, j)` extracts the word.
+- `result = word + " " + result` prepends it.
+- `i = j + 1` advances to the next word; the outer loop skips any extra spaces.
+
+## Why We Don't Need a Stack
+
+A `Stack<String>` would also reverse the order: push `the`, `sky`, `is`, `blue`, then pop them in reverse order. This solution achieves the same result directly by prepending each word:
+
+```text
+the
+sky the
+is sky the
+blue is sky the
+```
+
+## Important Java Concept
+
+This line is **not `O(1)`**:
+
+```java
+result = sub + " " + result;
+```
+
+Java `String` is immutable, so each concatenation creates a new string and copies the existing result. Across many words, repeated prepending can take **`O(n²)` time in the worst case**, even though the input scan itself is linear.
+
+## Main DSA Takeaway
+
+> **When you need to reverse the order of items, you don't necessarily need to traverse backwards or use a stack. You can process items normally and prepend each new item to the result.**
+
+For efficient Java solutions, `StringBuilder` or an in-place character-array technique is generally preferable to repeated `String` concatenation.
