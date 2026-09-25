@@ -1,6 +1,108 @@
 # Leetcode-solutions
 All the solutions of the leetcode solutions I have solved yet (With proper notes)
 
+## LC 443 - String Compression
+
+The solution uses two pointers to compress consecutive duplicate characters **in-place**. One pointer scans the original array to find groups of identical characters, while the other writes the compressed result back into the same array.
+
+### Approach
+
+- Use `i` to scan through the array and identify consecutive groups of the same character.
+- Store the current character in `currChar`.
+- Use `count` to count how many times `currChar` appears consecutively.
+- Use `k` as the write pointer to store the compressed result.
+- Write the character at `chars[k]`.
+- If `count > 1`, convert the count to a string and write each digit into the array.
+- Continue until `i` reaches the end of the array.
+- Return `k`, which represents the length of the compressed array.
+
+### Code
+
+```java
+class Solution {
+    public int compress(char[] chars) {
+        int k = 0;
+        int i = 0;
+
+        while (i < chars.length) {
+            char currChar = chars[i];
+            int count = 0;
+
+            while (i < chars.length && chars[i] == currChar) {
+                i++;
+                count++;
+            }
+
+            chars[k++] = currChar;
+
+            if (count > 1) {
+                String currCount = String.valueOf(count);
+
+                for (char c : currCount.toCharArray()) {
+                    chars[k++] = c;
+                }
+            }
+        }
+
+        return k;
+    }
+}
+```
+
+### Example
+
+For:
+
+```text
+chars = ["a","a","b","b","c","c","c"]
+```
+
+The groups are:
+
+```text
+a -> 2
+b -> 2
+c -> 3
+```
+
+So the compressed array becomes:
+
+```text
+["a","2","b","2","c","3"]
+```
+
+The returned length is `6`. Only the first `k` elements matter because LeetCode checks the compressed portion of the array.
+
+### Why `i < chars.length` Is Important
+
+The inner loop must contain:
+
+```java
+while (i < chars.length && chars[i] == currChar)
+```
+
+The boundary check prevents accessing an index outside the array. Without it, when `i` reaches `chars.length`, the code would try to access `chars[i]`, which causes `ArrayIndexOutOfBoundsException`.
+
+### Why the Time Complexity Is O(n)
+
+There are nested loops, but the inner loop does **not restart from the beginning**. The same pointer `i` continuously moves forward:
+
+```text
+0 -> 1 -> 2 -> 3 -> ... -> n
+```
+
+Therefore, every character is processed at most once by `i`. The total work is approximately `n + n = 2n`, which simplifies to `O(n)`.
+
+### Complexity
+
+- **Time:** `O(n)`
+- **Space:** `O(1)` extra space, excluding the temporary count string
+
+### Key Takeaway
+
+> Use `i` to **read and count groups** and `k` to **write the compressed result**.
+> The important part is that `i` only moves forward, so the nested loop does not make the solution `O(n²)`.
+
 ## LC 18 - 4Sum
 
 The solution sorts the array, fixes the first two numbers, and uses two pointers to find the remaining pair.
