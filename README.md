@@ -1624,3 +1624,121 @@ Java `String` is immutable, so each concatenation creates a new string and copie
 > **When you need to reverse the order of items, you don't necessarily need to traverse backwards or use a stack. You can process items normally and prepend each new item to the result.**
 
 For efficient Java solutions, `StringBuilder` or an in-place character-array technique is generally preferable to repeated `String` concatenation.
+
+# LC 76 — Minimum Window Substring
+
+
+## Problem Summary
+
+Given strings s and t, return the shortest substring of s that contains every character in t (including duplicates). Return "" if no such window exists.
+
+
+---
+
+
+## Approach — Variable Sliding Window + Frequency Counting
+
+
+Core Idea
+Expand the right pointer to satisfy the condition (window contains all of t), then shrink the left pointer to minimize the window while the condition still holds. Never recount the whole window — only update state for the single character added or removed.
+
+
+have / need Pattern
+Instead of comparing entire frequency arrays at each step, maintain two integers:
+
+need — number of distinct characters in t that must be fully satisfied
+have — number of distinct characters currently satisfied in the window
+
+A character c is *satisfied* when freqW[c] >= freqT[c]. Increment have only when freqW[c] reaches freqT[c], decrement when it drops below.
+
+
+---
+
+
+## Complexity
+
+| | |
+
+|---|---|
+
+| Time | O(|s| + |t|) — each character in s is added and removed at most once |
+
+| Space | O(1) — frequency arrays are fixed size (128 ASCII chars) |
+
+
+This is theoretically optimal — you cannot solve this problem without reading every character of both strings at least once.
+
+
+---
+
+
+## Why int[128] Instead of int[26]
+
+Every character has an underlying ASCII integer value ('a' = 97, 'A' = 65, 'z' = 122). Using size 128 lets you index directly by the character without any conversion:
+
+freqT[c]++;  // clean, works for uppercase and lowercase
+Using int[26] forces you to write freqT[c - 'a']++, which breaks on uppercase letters (produces a negative index). The 128-element array is negligible in memory and avoids an entire class of bugs.
+
+
+---
+
+
+## Solution
+
+class Solution {
+    public String minWindow(String s, String t) {
+        if (s.length() == 0 || t.length() == 0) return "";
+
+        int[] freqT = new int[128];
+        for (char c : t.toCharArray()) freqT[c]++;
+
+        int need = 0;
+        for (int f : freqT) if (f > 0) need++;
+
+        int left = 0, right = 0;
+        int have = 0;
+        int[] freqW = new int[128];
+        int minLen = Integer.MAX_VALUE, minStart = 0;
+
+        while (right < s.length()) {
+            // Expand: add s[right] to window
+            char rc = s.charAt(right);
+            freqW[rc]++;
+            if (freqT[rc] > 0 && freqW[rc] == freqT[rc]) have++;
+            right++;
+
+            // Shrink: move left while window is valid
+            while (have == need) {
+                int currLen = right - left;
+                if (currLen < minLen) {
+                    minLen = currLen;
+                    minStart = left;
+                }
+                char lc = s.charAt(left);
+                freqW[lc]--;
+                if (freqT[lc] > 0 && freqW[lc] < freqT[lc]) have--;
+                left++;
+            }
+        }
+
+        return minLen == Integer.MAX_VALUE ? "" : s.substring(minStart, minStart + minLen);
+    }
+}
+
+---
+
+
+## Common Mistakes to Avoid
+
+s[i] is invalid in Java — use s.charAt(i) or convert to char[] first
+Don't rebuild the window from scratch inside the loop — only update the single character added or removed
+Shrink check order matters — record the window size and update freqW and have *before* advancing left, not after
+int[26] breaks on uppercase — use int[128] and index by raw char value
+Guard the return — if minLen was never updated, return "" instead of calling substring with garbage values
+
+---
+
+
+## Key Pattern
+
+Sliding Window (Variable Size) — expand right to meet a condition, shrink left to optimize. Reusable whenever the problem asks for the smallest/largest subarray or substring satisfying some constraint.
