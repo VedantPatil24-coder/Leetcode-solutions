@@ -1742,3 +1742,185 @@ Guard the return — if minLen was never updated, return "" instead of calling s
 ## Key Pattern
 
 Sliding Window (Variable Size) — expand right to meet a condition, shrink left to optimize. Reusable whenever the problem asks for the smallest/largest subarray or substring satisfying some constraint.
+
+
+# LeetCode 189 – Rotate Array
+
+**Topic:** Arrays | Reversal Algorithm  
+**Difficulty:** Medium  
+**Language:** Java  
+**Approach:** Three Reversals (In-place)
+
+## 1. Problem Statement
+
+Given an integer array `nums`, rotate the array to the right by `k` positions.
+
+**Example:**
+
+Input:
+```text
+nums = [1,2,3,4,5,6,7]
+k = 3
+```
+
+Output:
+```text
+[5,6,7,1,2,3,4]
+```
+
+## 2. Intuition
+
+Instead of moving elements one by one, we can use the **array reversal technique**.
+
+The main observation is that rotating an array to the right by `k` positions can be achieved using just three reversal operations.
+
+For right rotation:
+
+1. Reverse the first `n-k` elements.
+2. Reverse the last `k` elements.
+3. Reverse the entire array.
+
+Before performing these operations, calculate:
+
+```java
+k = k % n;
+```
+
+This handles cases where `k` is greater than the array length.
+
+## 3. Java Solution
+
+```java
+class Solution {
+    public void rotate(int[] nums, int k) {
+        int n = nums.length;
+
+        k = k % n;
+
+        reverse(nums, 0, n - k - 1);
+        reverse(nums, n - k, n - 1);
+        reverse(nums, 0, n - 1);
+    }
+
+    public static void reverse(int[] nums, int first, int last) {
+        while (first < last) {
+            int temp = nums[first];
+            nums[first] = nums[last];
+            nums[last] = temp;
+
+            first++;
+            last--;
+        }
+    }
+}
+```
+
+## 4. Dry Run
+
+Consider:
+
+```text
+nums = [1,2,3,4,5,6,7]
+k = 3
+n = 7
+```
+
+**Step 1: Reverse the first n-k elements**
+
+Reverse indices `0` to `3`.
+
+```text
+[4,3,2,1,5,6,7]
+```
+
+**Step 2: Reverse the last k elements**
+
+Reverse indices `4` to `6`.
+
+```text
+[4,3,2,1,7,6,5]
+```
+
+**Step 3: Reverse the entire array**
+
+Reverse indices `0` to `6`.
+
+```text
+[5,6,7,1,2,3,4]
+```
+
+Final Answer:
+
+```text
+[5,6,7,1,2,3,4]
+```
+
+## 5. Understanding the Reverse Function
+
+The reverse function uses two pointers:
+
+- `first`: Points to the starting index.
+- `last`: Points to the ending index.
+
+While `first < last`:
+
+1. Store the value at `last` in a temporary variable.
+2. Swap the values at `first` and `last`.
+3. Increment `first`.
+4. Decrement `last`.
+
+This reverses the selected portion of the array without using another array.
+
+## 6. Why Do We Use k % n?
+
+Suppose:
+
+```text
+n = 5
+k = 7
+```
+
+Rotating an array 7 times is equivalent to rotating it 2 times.
+
+```text
+7 % 5 = 2
+```
+
+Therefore:
+
+```java
+k = k % n;
+```
+
+This reduces unnecessary rotations.
+
+## 7. Complexity Analysis
+
+| Complexity | Value | Reason |
+|---|---|---|
+| Time | O(n) | Three reversals, each taking linear time |
+| Space | O(1) | In-place swapping using a temporary variable |
+
+## 8. Edge Cases to Remember
+
+- `k = 0`: Array remains unchanged.
+- `k > n`: Use modulo to normalize rotations.
+- `k = n`: Array remains unchanged.
+- Single-element array: No change required.
+
+**Implementation note:** If an empty array is possible, handle `n == 0` before calculating `k % n`.
+
+## 9. Key Takeaways
+
+1. Reversal is a useful technique for in-place array manipulation.
+2. Two-pointer swapping can reverse an array or a portion of it.
+3. Modulo helps handle rotations greater than the array length.
+4. Three reversals achieve right rotation in O(n) time and O(1) auxiliary space.
+
+**Important Formula – Right Rotation**
+
+```text
+1. Reverse(0, n-k-1)
+2. Reverse(n-k, n-1)
+3. Reverse(0, n-1)
+```
