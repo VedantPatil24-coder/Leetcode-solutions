@@ -1924,3 +1924,133 @@ This reduces unnecessary rotations.
 2. Reverse(n-k, n-1)
 3. Reverse(0, n-1)
 ```
+# LeetCode 118 – Pascal's Triangle
+
+**Difficulty:** Easy  
+**Topic:** ArrayList, 2D ArrayList, Dynamic Programming
+
+## Problem
+Given an integer `numRows`, generate the first `numRows` of Pascal's Triangle.
+
+In Pascal's Triangle:
+- The first and last elements of every row are always `1`.
+- Every middle element is the sum of the two elements directly above it.
+
+## Approach – Using Previous Row
+
+Instead of calculating every element using factorials and combinations, we can generate each row using the previously generated row.
+
+### Logic
+
+1. Create a 2D ArrayList named `triangle` to store all rows.
+2. Iterate from `i = 0` to `numRows - 1`.
+3. Create a new ArrayList called `row` for the current row.
+4. If `i == 0`, add `1` because the first row contains only one element.
+5. Otherwise:
+   - Access the previous row using `triangle.get(i - 1)`.
+   - Add `1` at the beginning of the current row.
+   - Traverse the previous row to calculate the middle elements.
+   - Each middle element is calculated as:
+
+   ```java
+   int value = previousRow.get(j - 1) + previousRow.get(j);
+   ```
+
+   - Add `1` at the end of the current row.
+6. Add the completed row to `triangle`.
+7. Return `triangle`.
+
+## Java Code
+
+```java
+class Solution {
+    public List<List<Integer>> generate(int numRows) {
+
+        List<List<Integer>> triangle = new ArrayList<>();
+
+        for (int i = 0; i < numRows; i++) {
+
+            List<Integer> row = new ArrayList<>();
+
+            if (i == 0) {
+                row.add(1);
+            } 
+            else {
+                List<Integer> previousRow = triangle.get(i - 1);
+
+                row.add(1);
+
+                for (int j = 1; j < previousRow.size(); j++) {
+
+                    int value = previousRow.get(j - 1)
+                               + previousRow.get(j);
+
+                    row.add(value);
+                }
+
+                row.add(1);
+            }
+
+            triangle.add(row);
+        }
+
+        return triangle;
+    }
+}
+```
+
+## Dry Run
+
+For `numRows = 5`:
+
+| Iteration | Generated Row |
+|---|---|
+| 0 | `[1]` |
+| 1 | `[1, 1]` |
+| 2 | `[1, 2, 1]` |
+| 3 | `[1, 3, 3, 1]` |
+| 4 | `[1, 4, 6, 4, 1]` |
+
+**Output:**
+
+```text
+[
+ [1],
+ [1, 1],
+ [1, 2, 1],
+ [1, 3, 3, 1],
+ [1, 4, 6, 4, 1]
+]
+```
+
+## Important Java Concepts
+
+- `List<List<Integer>>`: Stores multiple lists inside a list.
+- `triangle.get(i - 1)`: Retrieves the previously generated row.
+- `previousRow.get(j)`: Accesses an element from the previous row.
+- `row.add(value)`: Adds an element to the current row.
+
+## Complexity Analysis
+
+Let `n` be the number of rows.
+
+**Time Complexity:** `O(n²)`
+
+We generate `n` rows, and the total number of elements generated is:
+
+`1 + 2 + 3 + ... + n = n(n + 1)/2`
+
+**Space Complexity:** `O(n²)`
+
+The triangle stores a total of `n(n + 1)/2` elements.
+
+## Key Takeaways
+
+1. Always remember that the first and last elements of each row are `1`.
+2. The middle elements are calculated using the previous row.
+3. Store each completed row in the main 2D ArrayList.
+4. Avoid factorial calculations for this problem because factorial values can overflow Java's integer data types even when the final Pascal Triangle values fit in an `int`.
+
+**Core Formula:**
+
+`Current Element = Previous Row[j - 1] + Previous Row[j]`
